@@ -1,11 +1,14 @@
 const mongoose = require('mongoose');
+const dotenv = require("dotenv");
+dotenv.config();
 
+const db = process.env.db
 module.exports = function () {   
-mongoose.connect('mongodb+srv://abimbola:bolarious199715@testcluster.rxal0.mongodb.net/test', {
+mongoose.connect(db, {
     useUnifiedTopology: true,
     useCreateIndex: true,
     useNewUrlParser: true,
     useFindAndModify: false,
   })
-  .then(() => winston.info('Database connected'))
+  .then(() => console.log('Database connected'))
 }
