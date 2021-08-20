@@ -11,7 +11,7 @@ router.post("/signup", async (req, res) => {
   let user = await User.findOne({ email: req.body.email });
   if (user) return res.status(400).send("user already  exists");
  
-  let user = new User(_.pick(req.body, ["name", "email", "password"]));
+   user = new User(_.pick(req.body, ["name", "email", "password"]));
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(user.password, salt);
   await user.save();
@@ -25,9 +25,9 @@ router.post("/login", async (req, res) => {
   let user = await User.findOne({ email: req.body.email });
   if (!user) return res.status(400).send("user does not  exist");
   const token = user.generateAuthToken();
-  return res
-    .header("x-auth-token", token)
-    .send(_.pick(user, ["_id", "name", "email"]));
+  console.log(token)
+  return res.status(200)
+    .send(token);
 });
 
 module.exports = router;
