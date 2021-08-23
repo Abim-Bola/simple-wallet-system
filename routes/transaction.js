@@ -3,6 +3,7 @@ const _ = require("lodash");
 const auth = require('../middleware/auth');
 const { PaystackService } = require("../utils/paystack");
 const { validate, Wallet } = require("../models/wallet");
+const { Transaction } = require("../models/transaction");
 const router = express.Router();
 
 
@@ -24,7 +25,7 @@ router.post("/", auth, async (req, res) => {
     }
   
     if (wallet.balance < amount) {
-      throw new Error("Insufficient funds");
+      res.send("Insufficient funds");
     }
     // create transfer recipient
     const transferRecipient = await PaystackService.createTransferRecipient({
@@ -39,17 +40,22 @@ router.post("/", auth, async (req, res) => {
       amount,
       recipient: transferRecipient,
     });
+    console.log(transfer)
     const final = await walletTransaction[type]({ amount, walletId: wallet._id });
     console.log("USER BALANCE AFTER DEBIT", final);
     console.log({ transfer });
   });
 
   router.get("/", auth, async (req, res) => {
-    const {_id} = req.user
-    const wallet = await Wallet.findById({user: _id})
-    const transaction = await Transaction.findById({wallet: wallet._id})
-    const filter = transaction.map((t) => _.pick['_id','reference', 'balanceBefore', 'balanceAfter', 'wallet'])
-    res.status(200).send(filter);
+    try {
+      const {_id} = req.user
+      const wallet = await Wallet.findOne({user: _id})
+      const transaction = await Transaction.findOne({wallet: wallet._id})
+      res.status(200).send( _.pick([transaction, '_id','reference', 'balanceBefore', 'balanceAfter', 'wallet']));
+    } catch (error) {
+      return error;
+    }
+   
   });
 
   module.exports = router;

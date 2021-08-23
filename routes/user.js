@@ -5,7 +5,8 @@ const { validate, User } = require("../models/user");
 const router = express.Router();
 
 router.post("/signup", async (req, res) => {
-  const { error } = validate(req.body);
+  try{
+    const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
   
   let user = await User.findOne({ email: req.body.email });
@@ -16,18 +17,24 @@ router.post("/signup", async (req, res) => {
   user.password = await bcrypt.hash(user.password, salt);
   await user.save();
 
-  res.status(201).send(_.pick(user, ['_id', 'name', 'email']));;
+  res.status(201).send(_.pick(user, ['_id', 'name', 'email']));
+  }catch(error){
+    return error;
+  }
 });
 
 router.post("/login", async (req, res) => {
-  const { error } = validate(req.body);
+  try {
+    const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
   let user = await User.findOne({ email: req.body.email });
   if (!user) return res.status(400).send("user does not  exist");
   const token = user.generateAuthToken();
-  console.log(token)
   return res.status(200)
-    .send(token);
+    .send({'token': token});
+  } catch (error) {
+    return error;
+  }
 });
 
 module.exports = router;
